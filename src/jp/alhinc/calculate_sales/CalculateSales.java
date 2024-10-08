@@ -37,6 +37,18 @@ public class CalculateSales {
 		}
 
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
+		//listFilesを使⽤してfilesという配列に、指定したパスに存在する
+		//全てのファイル(または、ディレクトリ)の情報を格納します。
+		File[] files = new File("C:\\Users\\trainee0957\\Desktop\\売上集計課題").listFiles();
+
+		//filesの数だけ繰り返すことで、指定したパスに存在する
+		//全てのファイル(または、ディレクトリ)の数だけ繰り返されます。
+		for(int i = 0; i < files.length ; i++) {
+
+			//files[i].getName() でファイル名が取得できます。
+			String fileNames = files[i].getName();
+		}
+
 
 
 
@@ -68,7 +80,15 @@ public class CalculateSales {
 			// 一行ずつ読み込む
 			while((line = br.readLine()) != null) {
 				// ※ここの読み込み処理を変更してください。(処理内容1-2)
-				System.out.println(line);
+				//split を使って「,」(カンマ)で分割すると、
+			    //items[0] には⽀店コード、items[1] には⽀店名が格納されます。
+			    String[] items = line.split(",");
+
+			    //Mapに追加する2つの情報をputの引数として指定します。
+			    //branchNamesのMapに支店定義ファイルの支店コード、支店名をいれる
+			    	branchNames.put(items[0],items[1]);
+			    //branchSalesのMapに支店コードと0（売上ファイル取り込み前のため）をLong型でいれる
+					branchSales.put(items[0],0L);
 			}
 
 		} catch(IOException e) {
