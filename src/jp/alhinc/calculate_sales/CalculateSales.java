@@ -24,6 +24,10 @@ public class CalculateSales {
 	private static final String UNKNOWN_ERROR = "予期せぬエラーが発生しました";
 	private static final String FILE_NOT_EXIST = "支店定義ファイルが存在しません";
 	private static final String FILE_INVALID_FORMAT = "支店定義ファイルのフォーマットが不正です";
+	private static final String SALESFILE_INVALID_NAME = "売上ファイル名が連番になっていません";
+	private static final String SPECIFIED_INVALID_FORMAT = /*<ファイル名>*/"のフォーマットが不正です";
+	private static final String SPECIFIED_INVALID_BRNCHECODE = /*<ファイル名>*/"の⽀店コードが不正です";
+	private static final String SALESAMOUNT_OVER_10DEGITS = "合計金額が10桁を超えました";
 
 	/**
 	 * メインメソッド
@@ -78,7 +82,7 @@ public class CalculateSales {
 
 			//int型に変換した2つの変数を比較して、1にならない場合はエラーメッセージを表示して、処理を終了
 			if ((latter - former) != 1) {
-				System.out.println("売上ファイル名が連番になっていません");
+				System.out.println(SALESFILE_INVALID_NAME);
 				return;
 			}
 		}
@@ -100,22 +104,22 @@ public class CalculateSales {
 					contents.add(line);
 				}
 
-				//売上ファイルの売上金額に数字以外が記載されている場合、エラーメッセージを表示し、処理を終了
-				if (!contents.get(1).matches("^[0-9]*$")) {
-					System.out.println(UNKNOWN_ERROR);
-					return;
-				}
-
 				//売上ファイルの中身が3行以上ある場合、エラーメッセージを表示し、処理を終了
 				if (contents.size() != 2) {
-					System.out.println("<" + rcdFiles.get(i).getName() + ">のフォーマットが不正です");
+					System.out.println(rcdFiles.get(i).getName() + SPECIFIED_INVALID_FORMAT);
 					return;
 				}
 
 				//売上ファイルに記載されている支店コードにが支店定義ファイルに該当しなかった場合、
 				//エラーメッセージを表示し、処理を終了
 				if (!branchNames.containsKey(contents.get(0))) {
-					System.out.println("<" + rcdFiles.get(i).getName() + ">の⽀店コードが不正です");
+					System.out.println(rcdFiles.get(i).getName() + SPECIFIED_INVALID_BRNCHECODE);
+					return;
+				}
+
+				//売上ファイルの売上金額に数字以外が記載されている場合、エラーメッセージを表示し、処理を終了
+				if (!contents.get(1).matches("^[0-9]*$")) {
+					System.out.println(UNKNOWN_ERROR);
 					return;
 				}
 
@@ -124,9 +128,8 @@ public class CalculateSales {
 
 				//売上金額が10桁を超えた場合、エラーメッセージを表示し、処理を終了
 				if (saleAmount >= 10000000000L) {
-					System.out.println("合計金額が10桁を超えました");
+					System.out.println(SALESAMOUNT_OVER_10DEGITS);
 					return;
-
 				}
 
 				//合計した売上金額をMapにいれる
@@ -189,7 +192,7 @@ public class CalculateSales {
 				String[] items = line.split(",");
 
 				//ファイル内が下記の２条件に合わない場合は、エラーメッセージを表示して処理終了
-				if ((items.length != 2) || (!items[0].matches("[0-9]{3}"))) {
+				if ((items.length != 2) || (!items[0].matches("^[0-9]{3}$"))) {
 					System.out.println(FILE_INVALID_FORMAT);
 					return false;
 				}
@@ -245,10 +248,6 @@ public class CalculateSales {
 				//改行
 				bw.newLine();
 			}
-
-			//支店別集計ファイルへの出力終了
-			bw.close();
-
 		} catch (IOException e) {
 			System.out.println(e);
 			return false;
