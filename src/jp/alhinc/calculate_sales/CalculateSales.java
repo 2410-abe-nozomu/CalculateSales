@@ -25,8 +25,8 @@ public class CalculateSales {
 	private static final String FILE_NOT_EXIST = "支店定義ファイルが存在しません";
 	private static final String FILE_INVALID_FORMAT = "支店定義ファイルのフォーマットが不正です";
 	private static final String SALESFILE_INVALID_NAME = "売上ファイル名が連番になっていません";
-	private static final String SPECIFIED_INVALID_FORMAT = /*<ファイル名>*/"のフォーマットが不正です";
-	private static final String SPECIFIED_INVALID_BRNCHECODE = /*<ファイル名>*/"の⽀店コードが不正です";
+	private static final String SPECIFIED_INVALID_FORMAT = "のフォーマットが不正です";
+	private static final String SPECIFIED_INVALID_BRNCHECODE = "の⽀店コードが不正です";
 	private static final String SALESAMOUNT_OVER_10DEGITS = "合計金額が10桁を超えました";
 
 	/**
