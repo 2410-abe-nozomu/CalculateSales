@@ -43,7 +43,7 @@ public class CalculateSales {
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
 		//listFilesを使⽤してfilesという配列に、指定したパスに存在する
 		//全てのファイル(または、ディレクトリ)の情報を格納
-		File[] files = new File("C:\\Users\\trainee0957\\Desktop\\売上集計課題").listFiles();
+		File[] files = new File(args[0]).listFiles();
 
 		//先にファイルの情報を格納する List(ArrayList) を宣⾔
 		List<File> rcdFiles = new ArrayList<>();
@@ -170,27 +170,26 @@ public class CalculateSales {
 		// ※ここに書き込み処理を作成してください。(処理内容3-1)
 
 		try {
-			File file = new File(path, fileName);
+			File file = new File(path , fileName);
 			FileWriter fw = new FileWriter(file);
 			BufferedWriter bw = new BufferedWriter(fw);
 
 			for (String key : branchNames.keySet()) {
-				String[] result = {key , branchNames.get(key) , branchSales.get(key).toString()}
-
 
 			//支店別集計ファイルに出力
-			bw.write(result);
+			bw.write(key + "," + branchNames.get(key) + "," + branchSales.get(key).toString());
+
+			//改行
+			bw.newLine();
+			}
 
 			//支店別集計ファイルへの出力終了
 			bw.close();
-			}
 
+		}catch(IOException e) {
+			System.out.println(e);
+			return false;
 		}
-
-
-
-
-
 
 		return true;
 	}
