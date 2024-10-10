@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,13 @@ public class CalculateSales {
 	 * @param コマンドライン引数
 	 */
 	public static void main(String[] args) {
+
+		//コマンドライン引数の要素数が0（コマンドライン引数なし）のとき、エラーメッセージを表示し、処理を終了
+		if (args.length != 1) {
+			System.out.println(UNKNOWN_ERROR);
+			return;
+		}
+
 		// 支店コードと支店名を保持するMap
 		Map<String, String> branchNames = new HashMap<>();
 		// 支店コードと売上金額を保持するMap
@@ -54,13 +62,29 @@ public class CalculateSales {
 
 			//files[i].getName() でファイル名が取得できます。
 			//ファイル名が「branch.lst」以外であればrcdFilesに追加
-			if (files[i].getName().matches("^[0-9]{8}.rcd$")) {
+			if (files[i].isFile() && files[i].getName().matches("^[0-9]{8}.rcd$")) {
 				rcdFiles.add(files[i]);
 			}
 		}
+		//rcd.filesに保持したファイルを昇順にソートする
+		Collections.sort(rcdFiles);
+
+		//rcdFilesの売上ファイルのファイル名を１つずつ比較する
+		for (int i = 0; i < rcdFiles.size() - 1; i++) {
+
+			//売上ファイル名の0～8文字目を取り出してint型に変換
+			int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
+			int latter = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0, 8));
+
+			//int型に変換した2つの変数を比較して、1にならない場合はエラーメッセージを表示して、処理を終了
+			if ((latter - former) != 1) {
+				System.out.println("売上ファイル名が連番になっていません");
+				return;
+			}
+		}
+
 		// 売上ファイルがrcdFilesに複数存在しているので、繰り返しファイルの読み込み行う
 		for (int i = 0; i < rcdFiles.size(); i++) {
-			// 支店定義ファイル読み込み(readFileメソッド)を参考に売上ファイルを読み込む
 			BufferedReader br = null;
 
 			try {
@@ -72,11 +96,38 @@ public class CalculateSales {
 				// 一行ずつ読み込む
 				while ((line = br.readLine()) != null) {
 					//split を使って(改行)で分割すると、
-					//contents[0] には⽀店コード、contents[1] には売上が格納される
+					//contents.get(0) には⽀店コード、contents.get(1) には売上が格納される
 					contents.add(line);
 				}
+
+				//売上ファイルの売上金額に数字以外が記載されている場合、エラーメッセージを表示し、処理を終了
+				if (!contents.get(1).matches("^[0-9]*$")) {
+					System.out.println(UNKNOWN_ERROR);
+					return;
+				}
+
+				//売上ファイルの中身が3行以上ある場合、エラーメッセージを表示し、処理を終了
+				if (contents.size() != 2) {
+					System.out.println("<" + rcdFiles.get(i).getName() + ">のフォーマットが不正です");
+					return;
+				}
+
+				//売上ファイルに記載されている支店コードにが支店定義ファイルに該当しなかった場合、
+				//エラーメッセージを表示し、処理を終了
+				if (!branchNames.containsKey(contents.get(0))) {
+					System.out.println("<" + rcdFiles.get(i).getName() + ">の⽀店コードが不正です");
+					return;
+				}
+
 				//売上ファイルから読み込んだ売上金額をMapの売上金額と合計する
 				Long saleAmount = branchSales.get(contents.get(0)) + Long.parseLong(contents.get(1));
+
+				//売上金額が10桁を超えた場合、エラーメッセージを表示し、処理を終了
+				if (saleAmount >= 10000000000L) {
+					System.out.println("合計金額が10桁を超えました");
+					return;
+
+				}
 
 				//合計した売上金額をMapにいれる
 				branchSales.put(contents.get(0), saleAmount);
@@ -119,16 +170,29 @@ public class CalculateSales {
 
 		try {
 			File file = new File(path, fileName);
+
+			//支店定義ファイルが格納されていない場合、エラーメッセージを表示して処理終了
+			if (!file.exists()) {
+				System.out.println(FILE_NOT_EXIST);
+				return false;
+			}
+
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
 
 			String line;
 			// 一行ずつ読み込む
 			while ((line = br.readLine()) != null) {
-				// ※ここの読み込み処理を変更してください。(処理内容1-2)
+
 				//split を使って「,」(カンマ)で分割すると、
 				//items[0] には⽀店コード、items[1] には⽀店名が格納されます。
 				String[] items = line.split(",");
+
+				//ファイル内が下記の２条件に合わない場合は、エラーメッセージを表示して処理終了
+				if ((items.length != 2) || (!items[0].matches("[0-9]{3}"))) {
+					System.out.println(FILE_INVALID_FORMAT);
+					return false;
+				}
 
 				//Mapに追加する2つの情報をputの引数として指定します。
 				//branchNamesのMapに支店定義ファイルの支店コード、支店名をいれる
@@ -166,7 +230,6 @@ public class CalculateSales {
 	 */
 	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames,
 			Map<String, Long> branchSales) {
-		// ※ここに書き込み処理を作成してください。(処理内容3-1)
 		BufferedWriter bw = null;
 
 		try {
