@@ -147,31 +147,23 @@ public class CalculateSales {
 				//売上ファイルの金額をいれる変数を定義
 				Long fileValue = Long.parseLong(contents.get(2));
 
-				//支店
-				//売上ファイルから読み込んだ売上金額をMapの売上金額と合計する
-				Long saleAmountB = branchSales.get(contents.get(0)) + fileValue;
+				//売上ファイルから読み込んだ支店別売上金額をMapの売上金額と合計する
+				Long BranchsaleAmount = branchSales.get(contents.get(0)) + fileValue;
 
-				//売上金額が10桁を超えた場合、エラーメッセージを表示し、処理を終了
-				if (saleAmountB >= 10000000000L) {
+				//売上ファイルから読み込んだ商品別売上金額をMapの売上金額と合計する
+				Long CommoditysaleAmount = commoditySales.get(contents.get(1)) + fileValue;
+
+				//支店別or商品別売上金額が10桁を超えた場合、エラーメッセージを表示し、処理を終了
+				if ((BranchsaleAmount >= 10000000000L) || (CommoditysaleAmount >= 10000000000L)) {
 					System.out.println(SALESAMOUNT_OVER_10DEGITS);
 					return;
 				}
 
-				//合計した売上金額をMapにいれる
-				branchSales.put(contents.get(0), saleAmountB);
+				//合計した支店別売上金額をMapにいれる
+				branchSales.put(contents.get(0), BranchsaleAmount);
 
-				//商品
-				//売上ファイルから読み込んだ売上金額をMapの売上金額と合計する
-				Long saleAmountC = commoditySales.get(contents.get(1)) + fileValue;
-
-				//売上金額が10桁を超えた場合、エラーメッセージを表示し、処理を終了
-				if (saleAmountC >= 10000000000L) {
-					System.out.println(SALESAMOUNT_OVER_10DEGITS);
-					return;
-				}
-
-				//合計した売上金額をMapにいれる
-				commoditySales.put(contents.get(1), saleAmountC);
+				//合計した商品別売上金額をMapにいれる
+				commoditySales.put(contents.get(1), CommoditysaleAmount);
 
 			} catch (IOException e) {
 				System.out.println(UNKNOWN_ERROR);
@@ -210,8 +202,8 @@ public class CalculateSales {
 	 * @param 支店コードと売上金額を保持するMap
 	 * @return 読み込み可否
 	 */
-	private static boolean readFile(String path, String fileName, Map<String, String> Names,
-			Map<String, Long> Sales, String regularExpression, String definition) {
+	private static boolean readFile(String path, String fileName, Map<String, String> names,
+			Map<String, Long> sales, String regex, String definition) {
 		BufferedReader br = null;
 
 		try {
@@ -235,16 +227,16 @@ public class CalculateSales {
 				String[] items = line.split(",");
 
 				//ファイル内が下記の２条件に合わない場合は、エラーメッセージを表示して処理終了
-				if ((items.length != 2) || (!items[0].matches(regularExpression))) {
+				if ((items.length != 2) || (!items[0].matches(regex))) {
 					System.out.println(definition + FILE_INVALID_FORMAT);
 					return false;
 				}
 
 				//Mapに追加する2つの情報をputの引数として指定します。
 				//branchNamesのMapに支店or商品定義ファイルの支店or商品コード、支店or商品名をいれる
-				Names.put(items[0], items[1]);
+				names.put(items[0], items[1]);
 				//branchSalesのMapに支店or商品コードと0（売上ファイル取り込み前のため）をLong型でいれる
-				Sales.put(items[0], 0L);
+				sales.put(items[0], 0L);
 			}
 
 		} catch (IOException e) {
@@ -274,8 +266,8 @@ public class CalculateSales {
 	 * @param 支店コードと売上金額を保持するMap
 	 * @return 書き込み可否
 	 */
-	private static boolean writeFile(String path, String fileName, Map<String, String> Names,
-			Map<String, Long> Sales) {
+	private static boolean writeFile(String path, String fileName, Map<String, String> names,
+			Map<String, Long> sales) {
 		BufferedWriter bw = null;
 
 		try {
@@ -283,10 +275,10 @@ public class CalculateSales {
 			FileWriter fw = new FileWriter(file);
 			bw = new BufferedWriter(fw);
 
-			for (String key : Names.keySet()) {
+			for (String key : names.keySet()) {
 
 				//支店or商品別集計ファイルに出力
-				bw.write(key + "," + Names.get(key) + "," + Sales.get(key).toString());
+				bw.write(key + "," + names.get(key) + "," + sales.get(key).toString());
 
 				//改行
 				bw.newLine();
